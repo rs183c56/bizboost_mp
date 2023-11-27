@@ -13,6 +13,23 @@ const Recover = ({navigation}) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={{ flex: 1, marginHorizontal: 22 }}>
         <View>
+        <View>
+            <Button title="« Back" 
+            onPress={() => navigation.navigate("Login")}
+            style={{
+              borderWidth: 0,
+              width: 80,
+              height: 50,
+              marginTop:5,
+              marginLeft:-25,
+              
+            }}
+            >
+            </Button>
+          </View>
+
+
+
           <Text
             style={{
               fontSize: 50,
@@ -116,17 +133,6 @@ const Recover = ({navigation}) => {
             
           
         </View>
-        <View>
-            <Button title="Main Screen" 
-            onPress={() => navigation.navigate("Welcome")}
-            style={{
-              width: 130,
-              height: 50,
-              marginTop: 20,
-            }}
-            >
-            </Button>
-          </View>
     </SafeAreaView>
   );
 };
