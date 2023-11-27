@@ -21,7 +21,7 @@ const Home = ({ navigation }) => {
 
           <Button
             title="Log Out"
-            onPress={() => navigation.navigate("Welcome")}
+            onPress={() => navigation.navigate("Login")}
             style={{
               
               width: 350,
