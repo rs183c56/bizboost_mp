@@ -8,38 +8,26 @@ import Checkbox from "expo-checkbox";
 import Button from "../Buttons/Button";
 import { Pressable } from "react-native";
 import fetchServices from "./Service/fetchServices";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import {HelperText} from "react-native-paper";
 
-const Login = ({navigation}) => {
+  const Login = ({navigation}) => {
   const [passwordShown, setPasswordShown] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [errors, setErrors] = React.useState({});
+  // const [email, setEmail] = React.useState('');
+  // const [password, setPassword] = React.useState('');
+  // const [errors, setErrors] = React.useState({});
 
   const showToast = (message = "Something went wrong") => {
     ToastAndroid.show(message, 3000);
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (values) => {
     try {
-      // setLoading(true);
-      if (email === "") {
-        setErrors({ email: true });
-        return false;
-      }
-
-      if (password === "") {
-        setErrors({ password: true });
-        return false;
-      }
-
-      const url = "http://192.168.18.3:8000/api/v1/login";
-      const data = {
-        email,
-        password,
-      };
-      const result = await fetchServices.postData(url, data);
+      const url = "http://192.168.43.240:8000/api/v1/login";
+      const result = await fetchServices.postData(url, values);
       console.debug(result);
       if (result.message != null) {
         showToast(result?.message);
@@ -48,12 +36,35 @@ const Login = ({navigation}) => {
       }
     } catch (e) {
       console.debug(e.toString());
-    } finally {
-      // setLoading(false);
     }
   };
 
+  const validationSchema = Yup.object().shape({
+    email: Yup.string()
+      .email("Invalid Email")
+      .required("Please enter your email"),
+    password: Yup.string().required("Please enter your password"),
+  });
+
   return (
+    <Formik
+      initialValues={{ email: "", password: "" }}
+      onSubmit={async (values) => {
+        await handleLogin(values);
+      }}
+      validationSchema={validationSchema}
+    >
+    {({
+        values,
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        isSubmitting,
+        errors,
+        touched,
+        setTouched,
+      }) => {
+        return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={{ flex: 1, marginHorizontal: 22 }}>
         <View>
@@ -100,7 +111,7 @@ const Login = ({navigation}) => {
                 marginVertical: 8,
               }}
             >
-              Username
+              Email
             </Text>
 
             <View
@@ -118,14 +129,22 @@ const Login = ({navigation}) => {
               <TextInput
                 placeholder="Enter your email"
                 placeholderTextColor={COLORS.black}
-                keyboardType="email-address"
                 style={{
                   width: "100%",
                 }}
-                value={email}
-                onChangeText={setEmail}
-                error={errors?.email}
+                defaultValue={values.email}
+                value={values.email}
+                keyboardType="email-address"
+                onChangeText={handleChange("email")}
+                onBlur={handleBlur("email")}
+                error={errors.email && touched.email}
+                onFocus={() => setTouched({ email: true }, false)}
               />
+              {errors.email && touched.email && (
+              <HelperText type="error" visible={errors.email}>
+                {errors.email}
+              </HelperText>
+              )}
             </View>
           </View>
           </View>
@@ -162,10 +181,17 @@ const Login = ({navigation}) => {
                 style={{
                   width: "100%",
                 }}
-                value={password}
-                onChangeText={setPassword}
-                error={errors?.password}
+                value={values.password}
+                onChangeText={handleChange("password")}
+                onBlur={handleBlur("password")}
+                error={errors.password && touched.password}
+                onFocus={() => setTouched({ password: true }, false)}
               />
+              {errors.password && touched.password && (
+              <HelperText type="error" visible={errors.password}>
+                {errors.password}
+              </HelperText>
+              )}
               <TouchableOpacity
                 onPress={() => setPasswordShown(!passwordShown)}
                 style={{
@@ -218,7 +244,7 @@ const Login = ({navigation}) => {
 
                 
 
-          <Button onPress={handleLogin}
+          <Button
             title="Sign In"
             filled
             style={{
@@ -226,6 +252,9 @@ const Login = ({navigation}) => {
               marginTop: 1,
               marginBottom: 1,
             }}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+            onPress={handleSubmit}
           />
 
           <View
@@ -356,6 +385,9 @@ const Login = ({navigation}) => {
           </View>
         </View>
     </SafeAreaView>
+      );
+    }}
+    </Formik>
   );
 };
 
