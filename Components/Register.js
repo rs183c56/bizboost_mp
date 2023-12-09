@@ -1,4 +1,4 @@
-import { View, Text, Image, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, Image, TextInput, TouchableOpacity, ToastAndroid } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../Constants/colors";
@@ -7,10 +7,59 @@ import { useState } from "react";
 import Checkbox from "expo-checkbox";
 import Button from "../Buttons/Button";
 import { Pressable } from "react-native";
+import fetchServices from "./Service/fetchServices";
 
 const Register = ({navigation}) => {
   const [passwordShown, setPasswordShown] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [isError, setIsError] = React.useState(false);
+
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [repassword, setRepassword] = React.useState('');
+  const [name, setName] = React.useState('');
+
+  const showToast = (message = "Something went Wrong") => {
+    ToastAndroid.show(message,  3000);
+  };
+
+  const handleRegistration = async () => {
+    try{
+
+      if(name === '' || email === '' || password === '' || repassword === ''){
+        showToast("Please input required data");
+        setIsError(true);
+        return false;
+      }
+
+      if(password === '' != repassword === ''){
+        showToast("Please match password");
+        setIsError(true);
+        return false;
+      }
+
+      const url = 'http://192.168.18.3:8000/api/v1/register';
+      const data = {
+        name,
+        email,
+        password,
+        password_confirmation: repassword,
+      }
+
+      const result = await fetchServices.postData(url, data);
+      console.debug(result);
+
+      if(result?.message != null){
+        showToast(result?.message); 
+      }else{
+        navigation.navigate("Login")
+      }
+
+    }catch(e){
+      showToast(e.toString());
+    }
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={{ flex: 1, marginHorizontal: 22 }}>
@@ -39,7 +88,7 @@ const Register = ({navigation}) => {
                 marginVertical: 8,
               }}
             >
-              Email address
+              Name
             </Text>
 
             <View
@@ -55,12 +104,15 @@ const Register = ({navigation}) => {
               }}
             >
               <TextInput
-                placeholder="Enter your email address"
+                placeholder="Enter your Name"
                 placeholderTextColor={COLORS.black}
                 keyboardType="email-address"
                 style={{
                   width: "100%",
                 }}
+                value={name}
+                onChangeText={setName}
+                error={isError}
               />
             </View>
           </View>
@@ -78,7 +130,7 @@ const Register = ({navigation}) => {
                 marginVertical: 8,
               }}
             >
-              Username
+              Email
             </Text>
 
             <View
@@ -94,12 +146,15 @@ const Register = ({navigation}) => {
               }}
             >
               <TextInput
-                placeholder="Enter your username"
+                placeholder="Enter your Email"
                 placeholderTextColor={COLORS.black}
                 keyboardType="email-address"
                 style={{
                   width: "100%",
                 }}
+                value={email}
+                onChangeText={setEmail}
+                error={isError}
               />
             </View>
           </View>
@@ -137,6 +192,10 @@ const Register = ({navigation}) => {
                 style={{
                   width: "100%",
                 }}
+                value={password}
+                onChangeText={setPassword}
+                error={isError}
+                
               />
               <TouchableOpacity
                 onPress={() => setPasswordShown(!passwordShown)}
@@ -184,6 +243,9 @@ const Register = ({navigation}) => {
                 style={{
                   width: "100%",
                 }}
+                value={repassword}
+                onChangeText={setRepassword}
+                error={isError}
               />
               <TouchableOpacity
                 onPress={() => setPasswordShown(!passwordShown)}
@@ -223,6 +285,7 @@ const Register = ({navigation}) => {
               marginTop: 18,
               marginBottom: 4,
             }}
+            onPress={handleRegistration}
           />
 
           <View

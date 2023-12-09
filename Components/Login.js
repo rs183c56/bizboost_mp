@@ -1,4 +1,4 @@
-import { View, Text, Image, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, Image, TextInput, TouchableOpacity, ToastAndroid } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../Constants/colors";
@@ -7,11 +7,52 @@ import { useState } from "react";
 import Checkbox from "expo-checkbox";
 import Button from "../Buttons/Button";
 import { Pressable } from "react-native";
-
+import fetchServices from "./Service/fetchServices";
 
 const Login = ({navigation}) => {
   const [passwordShown, setPasswordShown] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [errors, setErrors] = React.useState({});
+
+  const showToast = (message = "Something went wrong") => {
+    ToastAndroid.show(message, 3000);
+  };
+
+  const handleLogin = async () => {
+    try {
+      // setLoading(true);
+      if (email === "") {
+        setErrors({ email: true });
+        return false;
+      }
+
+      if (password === "") {
+        setErrors({ password: true });
+        return false;
+      }
+
+      const url = "http://192.168.18.3:8000/api/v1/login";
+      const data = {
+        email,
+        password,
+      };
+      const result = await fetchServices.postData(url, data);
+      console.debug(result);
+      if (result.message != null) {
+        showToast(result?.message);
+      } else {
+        navigation.navigate("Home");
+      }
+    } catch (e) {
+      console.debug(e.toString());
+    } finally {
+      // setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={{ flex: 1, marginHorizontal: 22 }}>
@@ -75,12 +116,15 @@ const Login = ({navigation}) => {
               }}
             >
               <TextInput
-                placeholder="Enter your username"
+                placeholder="Enter your email"
                 placeholderTextColor={COLORS.black}
                 keyboardType="email-address"
                 style={{
                   width: "100%",
                 }}
+                value={email}
+                onChangeText={setEmail}
+                error={errors?.email}
               />
             </View>
           </View>
@@ -118,6 +162,9 @@ const Login = ({navigation}) => {
                 style={{
                   width: "100%",
                 }}
+                value={password}
+                onChangeText={setPassword}
+                error={errors?.password}
               />
               <TouchableOpacity
                 onPress={() => setPasswordShown(!passwordShown)}
@@ -171,7 +218,7 @@ const Login = ({navigation}) => {
 
                 
 
-          <Button onPress={() => navigation.navigate("Home")}
+          <Button onPress={handleLogin}
             title="Sign In"
             filled
             style={{
